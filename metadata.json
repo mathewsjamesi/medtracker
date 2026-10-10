@@ -1,0 +1,7 @@
+{
+  "name": "Med Tracker - Medication Overview & Adherence",
+  "description": "Clean clinical daily medication overview, dosage schedule, adherence tracking, and client-side privacy vault.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

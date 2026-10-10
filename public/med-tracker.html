@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Med Tracker — Clinical Clarity</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#1e4620',
+              dark: '#143116',
+              light: '#ebf4ee',
+              subtle: '#e2ede4'
+            },
+            surface: {
+              DEFAULT: '#f8f9fc',
+              card: '#ffffff',
+              dim: '#f2f4f6'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #f1f3f6;
+      -webkit-tap-highlight-color: transparent;
+      font-family: 'Inter', -apple-system, sans-serif;
+    }
+    .pb-safe { padding-bottom: env(safe-area-inset-bottom, 16px); }
+    .pt-safe { padding-top: env(safe-area-inset-top, 12px); }
+    ::-webkit-scrollbar { display: none; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="flex justify-center min-h-screen text-slate-900 antialiased selection:bg-brand-light">
+
+  <!-- Mobile Container (Simulating iPhone Viewport) -->
+  <div class="relative w-full max-w-[420px] min-h-screen bg-[#f8f9fc] flex flex-col shadow-2xl border-x border-slate-200">
+
+    <!-- Top Persistent App Bar -->
+    <header id="main-header" class="sticky top-0 z-30 bg-[#f8f9fc]/95 backdrop-blur-md px-5 pt-safe pb-3 border-b border-slate-100 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-brand text-white flex items-center justify-center font-bold text-sm shadow-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+        </div>
+        <div>
+          <span class="text-[10px] tracking-wider uppercase font-semibold text-slate-400 block -mb-0.5">Med Tracker</span>
+          <h1 id="header-title" class="text-base font-bold text-slate-800">Home</h1>
+        </div>
+      </div>
+      <button onclick="switchTab('settings')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      </button>
+    </header>
+
+    <!-- Main Dynamic Content Views Container -->
+    <main class="flex-1 pb-28 overflow-y-auto">
+
+      <!-- ================= 1. HOME VIEW ================= -->
+      <section id="view-home" class="p-5 space-y-5">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight text-slate-900">Your medication overview</h2>
+          <p id="home-today-date" class="text-xs font-medium text-slate-500 mt-1 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <span id="label-date">Loading...</span>
+          </p>
+        </div>
+
+        <!-- Progress Card -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-xs font-semibold text-slate-600">Today's Progress</span>
+              <span id="badge-ontrack" class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">On Track</span>
+            </div>
+            <span id="text-percent" class="text-xl font-bold text-slate-900">0%</span>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+            <div id="bar-progress" class="bg-brand h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+          <div class="flex justify-between text-xs text-slate-500">
+            <span id="text-doses-completed">0 doses completed</span>
+            <span id="text-doses-remaining">0 remaining</span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100">
+            <div class="bg-[#f8f9fc] rounded-xl p-2.5 text-center">
+              <span class="block text-[10px] uppercase font-bold tracking-wider text-slate-400">Scheduled</span>
+              <span id="count-scheduled" class="text-base font-bold text-slate-800">0</span>
+            </div>
+            <div class="bg-brand-light rounded-xl p-2.5 text-center">
+              <span class="block text-[10px] uppercase font-bold tracking-wider text-brand font-semibold">Taken</span>
+              <span id="count-taken" class="text-base font-bold text-brand">0</span>
+            </div>
+            <div class="bg-[#f8f9fc] rounded-xl p-2.5 text-center">
+              <span class="block text-[10px] uppercase font-bold tracking-wider text-slate-400">Remaining</span>
+              <span id="count-remaining" class="text-base font-bold text-slate-800">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Next Dose Card -->
+        <div id="card-next-dose" class="bg-[#ebf4ee] border border-emerald-200/70 rounded-2xl p-4 shadow-sm space-y-3">
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand text-white">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Next Dose
+              </span>
+              <h3 id="next-med-name" class="text-lg font-bold text-slate-900 mt-2">Loading...</h3>
+              <p id="next-med-instruction" class="text-xs text-slate-600">--</p>
+            </div>
+            <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-brand shadow-sm">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            </div>
+          </div>
+
+          <button id="btn-next-action" onclick="logNextDose()" class="w-full bg-brand hover:bg-brand-dark active:scale-[0.99] text-white font-semibold py-3 px-4 rounded-xl text-sm flex items-center justify-center gap-2 shadow transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+            Mark as Taken
+          </button>
+        </div>
+
+        <!-- Today's Schedule List -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-bold text-slate-800">Today's Schedule</h3>
+            <span id="badge-total-schedule" class="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">0 doses</span>
+          </div>
+          <div id="home-doses-list" class="space-y-2.5">
+            <!-- Dynamically Rendered -->
+          </div>
+        </div>
+
+        <!-- Add Button Quick Shortcut -->
+        <button onclick="openAddEditModal()" class="w-full py-3 border-2 border-dashed border-slate-200 hover:border-brand/40 hover:bg-emerald-50/30 rounded-xl text-slate-600 font-semibold text-xs flex items-center justify-center gap-2 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          Add New Medication
+        </button>
+      </section>
+
+      <!-- ================= 2. MEDICINES VIEW ================= -->
+      <section id="view-medicines" class="p-5 space-y-4 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight text-slate-900">My Medicines</h2>
+            <p class="text-xs text-slate-500">Manage all registered prescriptions</p>
+          </div>
+          <button onclick="openAddEditModal()" class="bg-brand text-white px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-sm hover:bg-brand-dark transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add
+          </button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="relative">
+          <input type="text" id="input-search-meds" oninput="renderMedicinesList()" placeholder="Search medications..." class="w-full bg-white border border-slate-200 rounded-xl px-9 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand/30" />
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="flex gap-1.5 overflow-x-auto pb-1 text-xs">
+          <button onclick="setMedFilter('all')" id="tab-filter-all" class="px-3 py-1.5 rounded-full font-semibold bg-brand text-white">All</button>
+          <button onclick="setMedFilter('active')" id="tab-filter-active" class="px-3 py-1.5 rounded-full font-semibold bg-white text-slate-600 border border-slate-200">Active</button>
+          <button onclick="setMedFilter('completed')" id="tab-filter-completed" class="px-3 py-1.5 rounded-full font-semibold bg-white text-slate-600 border border-slate-200">Completed</button>
+        </div>
+
+        <!-- Medicines List Container -->
+        <div id="medicines-container" class="space-y-3">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+      <!-- ================= 3. HISTORY VIEW ================= -->
+      <section id="view-history" class="p-5 space-y-4 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight text-slate-900">Medication History</h2>
+            <p class="text-xs text-slate-500">Audit logs & adherence records</p>
+          </div>
+          <button onclick="exportHistoryCSV()" class="text-xs font-semibold text-brand bg-brand-light px-3 py-1.5 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition">
+            Export CSV
+          </button>
+        </div>
+
+        <!-- Adherence Summary Banner -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-700">Adherence Summary</span>
+            <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Client-Side Log</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-center">
+            <div class="p-3 bg-[#f8f9fc] rounded-xl">
+              <span class="text-[10px] uppercase font-bold text-slate-400 block">Total Doses Logged</span>
+              <span id="hist-total-doses" class="text-xl font-bold text-slate-800">0</span>
+            </div>
+            <div class="p-3 bg-brand-light rounded-xl">
+              <span class="text-[10px] uppercase font-bold text-brand block">Compliance Rate</span>
+              <span id="hist-compliance" class="text-xl font-bold text-brand">100%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chronological Timeline Log -->
+        <div>
+          <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Recent Dose Activity</h3>
+          <div id="history-log-list" class="space-y-2">
+            <!-- Dynamically Populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 4. SETTINGS VIEW ================= -->
+      <section id="view-settings" class="p-5 space-y-5 hidden">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight text-slate-900">Settings</h2>
+          <p class="text-xs text-slate-500">Preferences and client-side data vault</p>
+        </div>
+
+        <!-- Privacy & Vault Card -->
+        <div class="bg-emerald-50/60 border border-emerald-200 rounded-2xl p-4">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="px-2 py-0.5 bg-brand text-white text-[10px] font-bold rounded-md uppercase">Private</span>
+            <h3 class="text-xs font-bold text-emerald-950">Client-Side Vault</h3>
+          </div>
+          <p class="text-[11px] text-emerald-800 leading-relaxed">
+            Zero external servers. All medical schedules, adherence stats, and log history exist solely inside this browser profile (LocalStorage).
+          </p>
+        </div>
+
+        <!-- Data Management -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm space-y-3">
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Data Management</h3>
+
+          <div class="flex gap-2">
+            <button onclick="exportJSONBackup()" class="flex-1 bg-brand text-white py-2.5 px-3 rounded-xl text-xs font-semibold hover:bg-brand-dark transition text-center">
+              Backup JSON
+            </button>
+            <label class="flex-1 bg-slate-100 text-slate-700 py-2.5 px-3 rounded-xl text-xs font-semibold hover:bg-slate-200 transition text-center cursor-pointer">
+              Restore JSON
+              <input type="file" id="file-restore" onchange="restoreJSONBackup(event)" class="hidden" accept=".json" />
+            </label>
+          </div>
+
+          <button onclick="loadDemoData()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">
+            Reload Sample Data
+          </button>
+
+          <button onclick="clearAllData()" class="w-full py-2.5 border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-xs font-bold transition">
+            Reset All Application Data
+          </button>
+        </div>
+
+        <div class="text-center pt-2 text-[11px] text-slate-400 space-y-1">
+          <p>Med Tracker v1.0.0 (Clinical Clarity)</p>
+          <p>Single-User Private Local MVP</p>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ================= 5. ADD / EDIT MEDICINE MODAL ================= -->
+    <div id="modal-add-edit" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex justify-center items-end sm:items-center hidden">
+      <div class="w-full max-w-[420px] bg-white rounded-t-3xl sm:rounded-2xl max-h-[90vh] overflow-y-auto p-5 shadow-2xl space-y-4">
+        
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <button onclick="closeAddEditModal()" class="text-xs font-medium text-slate-500 hover:text-slate-800">Cancel</button>
+          <h3 id="modal-title" class="text-sm font-bold text-slate-800">New Medication</h3>
+          <button onclick="saveMedicationForm()" class="text-xs font-bold text-brand hover:text-brand-dark">Save</button>
+        </div>
+
+        <form id="form-medication" class="space-y-4 text-xs">
+          <input type="hidden" id="med-id" />
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Medicine Name *</label>
+            <input type="text" id="med-name" required placeholder="e.g., Atorvastatin" class="w-full bg-[#f8f9fc] border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand/30" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Dosage Amount *</label>
+              <input type="text" id="med-dose-amount" required placeholder="e.g., 20" class="w-full bg-[#f8f9fc] border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand/30" />
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Unit</label>
+              <select id="med-dose-unit" class="w-full bg-[#f8f9fc] border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand/30">
+                <option value="mg">mg (Milligrams)</option>
+                <option value="mcg">mcg (Micrograms)</option>
+                <option value="ml">ml (Milliliters)</option>
+                <option value="IU">IU (Units)</option>
+                <option value="tablets">tablets</option>
+                <option value="drops">drops</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Medication Form</label>
+            <select id="med-form-factor" class="w-full bg-[#f8f9fc] border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand/30">
+              <option value="Tablet">Tablet</option>
+              <option value="Capsule">Capsule</option>
+              <option value="Liquid">Liquid</option>
+              <option value="Inhaler">Inhaler</option>
+              <option value="Injection">Injection</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Scheduled Time (Daily) *</label>
+            <input type="time" id="med-time" required value="08:00" class="w-full bg-[#f8f9fc] border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand/30" />
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Instructions / Notes</label>
+            <input type="text" id="med-instructions" placeholder="e.g., Take with dinner and water" class="w-full bg-[#f8f9fc] border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand/30" />
+          </div>
+
+          <div class="pt-2">
+            <button type="submit" class="w-full bg-brand hover:bg-brand-dark text-white font-semibold py-3 rounded-xl text-xs shadow transition">
+              Save Medication
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+
+    <!-- ================= BOTTOM TAB NAVIGATION ================= -->
+    <nav class="fixed bottom-0 z-40 w-full max-w-[420px] bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 pt-2 pb-safe flex justify-around items-center">
+      
+      <button onclick="switchTab('home')" id="nav-btn-home" class="flex flex-col items-center gap-1 text-brand">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="text-[10px] font-bold">Home</span>
+      </button>
+
+      <button onclick="switchTab('medicines')" id="nav-btn-medicines" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-700">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+        <span class="text-[10px] font-medium">Medicines</span>
+      </button>
+
+      <button onclick="switchTab('history')" id="nav-btn-history" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-700">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span class="text-[10px] font-medium">History</span>
+      </button>
+
+      <button onclick="switchTab('settings')" id="nav-btn-settings" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-700">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="text-[10px] font-medium">Settings</span>
+      </button>
+
+    </nav>
+  </div>
+
+  <script>
+    const STORAGE_KEY_MEDS = 'medtracker_medicines_v1';
+    const STORAGE_KEY_LOGS = 'medtracker_logs_v1';
+
+    const SAMPLE_MEDS = [
+      { id: 'm1', name: 'Levothyroxine', dose: '50', unit: 'mcg', form: 'Tablet', time: '07:00', instructions: 'Fasting with water', status: 'active', startDate: '2026-01-15' },
+      { id: 'm2', name: 'Vitamin D3', dose: '2000', unit: 'IU', form: 'Capsule', time: '12:30', instructions: 'Take with lunch', status: 'active', startDate: '2026-10-01' },
+      { id: 'm3', name: 'Atorvastatin', dose: '20', unit: 'mg', form: 'Tablet', time: '20:00', instructions: 'With dinner & full glass of water', status: 'active', startDate: '2026-09-12' },
+      { id: 'm4', name: 'Amoxicillin', dose: '500', unit: 'mg', form: 'Capsule', time: '09:00', instructions: 'Finished course', status: 'completed', startDate: '2026-08-10' }
+    ];
+
+    let medicines = [];
+    let logs = [];
+    let currentFilter = 'all';
+
+    function initApp() {
+      const options = { weekday: 'long', month: 'long', day: 'numeric' };
+      document.getElementById('label-date').innerText = new Date().toLocaleDateString('en-US', options);
+      loadFromStorage();
+      renderAll();
+    }
+
+    function loadFromStorage() {
+      const storedMeds = localStorage.getItem(STORAGE_KEY_MEDS);
+      const storedLogs = localStorage.getItem(STORAGE_KEY_LOGS);
+
+      if (storedMeds) {
+        medicines = JSON.parse(storedMeds);
+      } else {
+        medicines = SAMPLE_MEDS;
+        saveMeds();
+      }
+
+      if (storedLogs) {
+        logs = JSON.parse(storedLogs);
+      } else {
+        const todayStr = getTodayDateString();
+        logs = [
+          { id: 'l1', medId: 'm1', medName: 'Levothyroxine', scheduledTime: '07:00', loggedAt: '07:05 AM', date: todayStr, status: 'taken' },
+          { id: 'l2', medId: 'm2', medName: 'Vitamin D3', scheduledTime: '12:30', loggedAt: '12:35 PM', date: todayStr, status: 'taken' }
+        ];
+        saveLogs();
+      }
+    }
+
+    function saveMeds() {
+      localStorage.setItem(STORAGE_KEY_MEDS, JSON.stringify(medicines));
+    }
+    function saveLogs() {
+      localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(logs));
+    }
+
+    function getTodayDateString() {
+      return new Date().toISOString().split('T')[0];
+    }
+
+    function switchTab(tabId) {
+      const views = ['home', 'medicines', 'history', 'settings'];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        const navBtn = document.getElementById(`nav-btn-${v}`);
+        if (v === tabId) {
+          el.classList.remove('hidden');
+          navBtn.classList.add('text-brand');
+          navBtn.classList.remove('text-slate-400');
+          navBtn.querySelector('span').classList.add('font-bold');
+        } else {
+          el.classList.add('hidden');
+          navBtn.classList.remove('text-brand');
+          navBtn.classList.add('text-slate-400');
+          navBtn.querySelector('span').classList.remove('font-bold');
+        }
+      });
+
+      const headerTitle = document.getElementById('header-title');
+      const titles = { home: 'Home', medicines: 'Medicines', history: 'History', settings: 'Settings' };
+      headerTitle.innerText = titles[tabId] || 'Med Tracker';
+
+      renderAll();
+    }
+
+    function renderAll() {
+      renderHomeSchedule();
+      renderMedicinesList();
+      renderHistory();
+    }
+
+    function renderHomeSchedule() {
+      const todayStr = getTodayDateString();
+      const activeMeds = medicines.filter(m => m.status === 'active').sort((a,b) => a.time.localeCompare(b.time));
+      const todayLogs = logs.filter(l => l.date === todayStr);
+
+      const totalScheduled = activeMeds.length;
+      const totalTaken = todayLogs.filter(l => l.status === 'taken').length;
+      const totalRemaining = Math.max(0, totalScheduled - totalTaken);
+      const percent = totalScheduled > 0 ? Math.round((totalTaken / totalScheduled) * 100) : 0;
+
+      document.getElementById('text-percent').innerText = `${percent}%`;
+      document.getElementById('bar-progress').style.width = `${percent}%`;
+      document.getElementById('text-doses-completed').innerText = `${totalTaken} of ${totalScheduled} daily doses completed`;
+      document.getElementById('text-doses-remaining').innerText = `${totalRemaining} dose remaining`;
+      document.getElementById('count-scheduled').innerText = totalScheduled;
+      document.getElementById('count-taken').innerText = totalTaken;
+      document.getElementById('count-remaining').innerText = totalRemaining;
+      document.getElementById('badge-total-schedule').innerText = `${totalScheduled} doses`;
+
+      const nextMed = activeMeds.find(m => !todayLogs.some(l => l.medId === m.id && l.status === 'taken'));
+      const nextCard = document.getElementById('card-next-dose');
+      if (nextMed) {
+        nextCard.classList.remove('hidden');
+        document.getElementById('next-med-name').innerText = `${nextMed.name} ${nextMed.dose}${nextMed.unit}`;
+        document.getElementById('next-med-instruction').innerText = `${formatTime(nextMed.time)} • ${nextMed.instructions || nextMed.form}`;
+        nextCard.dataset.nextId = nextMed.id;
+      } else {
+        nextCard.classList.add('hidden');
+      }
+
+      const container = document.getElementById('home-doses-list');
+      container.innerHTML = '';
+
+      if (activeMeds.length === 0) {
+        container.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-slate-400 text-xs">No active medications scheduled.</div>`;
+        return;
+      }
+
+      activeMeds.forEach(m => {
+        const log = todayLogs.find(l => l.medId === m.id && l.status === 'taken');
+        const isTaken = !!log;
+
+        const card = document.createElement('div');
+        card.className = `p-3 rounded-xl border flex items-center justify-between transition ${isTaken ? 'bg-white border-slate-200 opacity-90' : 'bg-white border-slate-200/90 shadow-sm'}`;
+
+        card.innerHTML = `
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${isTaken ? 'bg-emerald-100 text-brand' : 'bg-slate-100 text-slate-700'}">
+              ${isTaken ? '✓' : formatTime(m.time).split(' ')[0]}
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-xs text-slate-900">${m.name}</span>
+                <span class="text-[10px] text-slate-500 font-medium">${m.dose}${m.unit}</span>
+              </div>
+              <div class="text-[10px] text-slate-400">
+                ${isTaken ? `Taken at ${log.loggedAt}` : `Due at ${formatTime(m.time)}`}
+              </div>
+            </div>
+          </div>
+          <div>
+            ${isTaken ? `
+              <button onclick="undoDose('${log.id}')" class="text-[11px] font-semibold text-slate-400 hover:text-slate-600 px-2 py-1">Undo</button>
+            ` : `
+              <button onclick="logDoseDirect('${m.id}')" class="bg-brand text-white text-[11px] font-semibold px-3 py-1.5 rounded-lg hover:bg-brand-dark transition shadow-sm">Log</button>
+            `}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderMedicinesList() {
+      const container = document.getElementById('medicines-container');
+      const searchQuery = (document.getElementById('input-search-meds').value || '').toLowerCase();
+      container.innerHTML = '';
+
+      const filtered = medicines.filter(m => {
+        const matchesFilter = (currentFilter === 'all') || (m.status === currentFilter);
+        const matchesSearch = m.name.toLowerCase().includes(searchQuery);
+        return matchesFilter && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center bg-white rounded-2xl border border-slate-200/70 space-y-2">
+            <p class="text-xs font-bold text-slate-700">No medicines found</p>
+            <p class="text-[11px] text-slate-400">Tap Add to register a new prescription</p>
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(m => {
+        const card = document.createElement('div');
+        card.className = "bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-2.5";
+        card.innerHTML = `
+          <div class="flex items-start justify-between">
+            <div>
+              <span class="text-xs font-bold text-slate-900">${m.name}</span>
+              <span class="ml-1 text-[11px] text-slate-500 font-medium">(${m.dose}${m.unit} • ${m.form})</span>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${m.status === 'active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'}">
+              ${m.status}
+            </span>
+          </div>
+          <div class="text-[11px] text-slate-500 bg-[#f8f9fc] p-2.5 rounded-xl space-y-1">
+            <p>⏰ <strong>Daily Schedule:</strong> ${formatTime(m.time)}</p>
+            ${m.instructions ? `<p>📋 <strong>Instructions:</strong> ${m.instructions}</p>` : ''}
+          </div>
+          <div class="flex justify-end gap-2 pt-1 border-t border-slate-100">
+            <button onclick="openAddEditModal('${m.id}')" class="text-xs font-semibold text-brand hover:underline">Edit Details →</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('history-log-list');
+      container.innerHTML = '';
+
+      document.getElementById('hist-total-doses').innerText = logs.length;
+      document.getElementById('hist-compliance').innerText = logs.length > 0 ? '100%' : 'N/A';
+
+      if (logs.length === 0) {
+        container.innerHTML = `<div class="p-4 bg-white rounded-xl text-center text-slate-400 text-xs">No logged dose events recorded yet.</div>`;
+        return;
+      }
+
+      const sortedLogs = [...logs].reverse();
+      sortedLogs.forEach(l => {
+        const item = document.createElement('div');
+        item.className = "bg-white p-3 rounded-xl border border-slate-200/80 flex items-center justify-between text-xs";
+        item.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <span class="w-6 h-6 rounded-full bg-emerald-100 text-brand flex items-center justify-center font-bold text-[10px]">✓</span>
+            <div>
+              <p class="font-bold text-slate-800">${l.medName}</p>
+              <p class="text-[10px] text-slate-400">${l.date} • Sched: ${formatTime(l.scheduledTime)}</p>
+            </div>
+          </div>
+          <span class="text-[10px] font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded">Logged ${l.loggedAt}</span>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function logNextDose() {
+      const nextId = document.getElementById('card-next-dose').dataset.nextId;
+      if (nextId) logDoseDirect(nextId);
+    }
+
+    function logDoseDirect(medId) {
+      const med = medicines.find(m => m.id === medId);
+      if (!med) return;
+
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      logs.push({
+        id: 'l_' + Date.now(),
+        medId: med.id,
+        medName: med.name,
+        scheduledTime: med.time,
+        loggedAt: timeStr,
+        date: getTodayDateString(),
+        status: 'taken'
+      });
+
+      saveLogs();
+      renderAll();
+    }
+
+    function undoDose(logId) {
+      logs = logs.filter(l => l.id !== logId);
+      saveLogs();
+      renderAll();
+    }
+
+    function openAddEditModal(editId = null) {
+      const modal = document.getElementById('modal-add-edit');
+      const title = document.getElementById('modal-title');
+      const form = document.getElementById('form-medication');
+
+      form.reset();
+      document.getElementById('med-id').value = '';
+
+      if (editId) {
+        const med = medicines.find(m => m.id === editId);
+        if (med) {
+          title.innerText = 'Edit Medication';
+          document.getElementById('med-id').value = med.id;
+          document.getElementById('med-name').value = med.name;
+          document.getElementById('med-dose-amount').value = med.dose;
+          document.getElementById('med-dose-unit').value = med.unit;
+          document.getElementById('med-form-factor').value = med.form;
+          document.getElementById('med-time').value = med.time;
+          document.getElementById('med-instructions').value = med.instructions || '';
+        }
+      } else {
+        title.innerText = 'New Medication';
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeAddEditModal() {
+      document.getElementById('modal-add-edit').classList.add('hidden');
+    }
+
+    document.getElementById('form-medication').addEventListener('submit', function(e) {
+      e.preventDefault();
+      saveMedicationForm();
+    });
+
+    function saveMedicationForm() {
+      const id = document.getElementById('med-id').value;
+      const name = document.getElementById('med-name').value.trim();
+      const dose = document.getElementById('med-dose-amount').value.trim();
+      const unit = document.getElementById('med-dose-unit').value;
+      const formFactor = document.getElementById('med-form-factor').value;
+      const time = document.getElementById('med-time').value;
+      const instructions = document.getElementById('med-instructions').value.trim();
+
+      if (!name || !dose) {
+        alert('Please fill out all required fields.');
+        return;
+      }
+
+      if (id) {
+        const index = medicines.findIndex(m => m.id === id);
+        if (index !== -1) {
+          medicines[index] = { ...medicines[index], name, dose, unit, form: formFactor, time, instructions };
+        }
+      } else {
+        const newMed = {
+          id: 'm_' + Date.now(),
+          name, dose, unit, form: formFactor, time, instructions,
+          status: 'active',
+          startDate: getTodayDateString()
+        };
+        medicines.push(newMed);
+      }
+
+      saveMeds();
+      closeAddEditModal();
+      renderAll();
+    }
+
+    function setMedFilter(f) {
+      currentFilter = f;
+      ['all', 'active', 'completed'].forEach(t => {
+        const btn = document.getElementById(`tab-filter-${t}`);
+        if (t === f) {
+          btn.className = 'px-3 py-1.5 rounded-full font-semibold bg-brand text-white';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-full font-semibold bg-white text-slate-600 border border-slate-200';
+        }
+      });
+      renderMedicinesList();
+    }
+
+    function formatTime(timeStr) {
+      if (!timeStr) return '';
+      const [h, m] = timeStr.split(':');
+      const hour = parseInt(h, 10);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const formattedHour = hour % 12 || 12;
+      return `${formattedHour}:${m} ${ampm}`;
+    }
+
+    function exportJSONBackup() {
+      const data = { medicines, logs, exportedAt: new Date().toISOString() };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      downloadBlob(blob, `medtracker_backup_${getTodayDateString()}.json`);
+    }
+
+    function exportHistoryCSV() {
+      let csv = 'LogID,Medication,ScheduledTime,LoggedAt,Date,Status\n';
+      logs.forEach(l => {
+        csv += `"${l.id}","${l.medName}","${l.scheduledTime}","${l.loggedAt}","${l.date}","${l.status}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      downloadBlob(blob, `medication_history_${getTodayDateString()}.csv`);
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function restoreJSONBackup(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (imported.medicines) medicines = imported.medicines;
+          if (imported.logs) logs = imported.logs;
+          saveMeds();
+          saveLogs();
+          renderAll();
+          alert('Backup restored successfully!');
+        } catch(err) {
+          alert('Invalid JSON file format.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function loadDemoData() {
+      medicines = SAMPLE_MEDS;
+      saveMeds();
+      renderAll();
+      alert('Sample dataset reloaded.');
+    }
+
+    function clearAllData() {
+      if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+        localStorage.removeItem(STORAGE_KEY_MEDS);
+        localStorage.removeItem(STORAGE_KEY_LOGS);
+        medicines = [];
+        logs = [];
+        renderAll();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>

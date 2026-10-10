@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #1e4620;
+  --color-brand-dark: #143116;
+  --color-brand-light: #ebf4ee;
+  --color-brand-subtle: #e2ede4;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  background-color: #f1f3f6;
+  -webkit-tap-highlight-color: transparent;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #191c1e;
+}
+
+/* Hide scrollbars for clean native feel */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
