@@ -288,7 +288,34 @@ export default function App() {
     playChime();
     showToast(`✓ Logged ${med.name} (${med.dose}${med.unit}) as taken`);
   };
+const shareDailyReport = () => {
+  const dayLogs = logs.filter(
+    (log) => log.date === selectedDate
+  );
 
+  const taken = dayLogs.filter(
+    (log) => log.status === 'taken'
+  ).length;
+
+  const report = [
+    'MED TRACKER - DAILY REPORT',
+    `Date: ${selectedDate}`,
+    '',
+    `Doses recorded as taken: ${taken}`,
+    `Total logged events: ${dayLogs.length}`,
+    '',
+    'DOSE HISTORY',
+    ...dayLogs.map(
+      (log) =>
+        `${log.status === 'taken' ? 'Taken' : 'Skipped'}: ${log.medName} at ${formatTimeString(log.scheduledTime)}`
+    ),
+  ].join('\n');
+
+  const url =
+    'https://wa.me/?text=' + encodeURIComponent(report);
+
+  window.open(url, '_blank', 'noopener,noreferrer');
+};
   const handleUndoDose = (logId: string) => {
     const targetLog = logs.find((l) => l.id === logId);
     setLogs((prev) => prev.filter((l) => l.id !== logId));
@@ -787,6 +814,13 @@ export default function App() {
               </div>
 
               {/* Add New Medication Quick Trigger (Dashed Box) */}
+              <button
+  type="button"
+  onClick={shareDailyReport}
+  className="w-full py-3 bg-[#25D366] text-white font-semibold text-sm rounded-xl"
+>
+  Share Daily Report on WhatsApp
+</button>
               <button
                 onClick={openNewMedModal}
                 className="w-full py-3.5 border-2 border-dashed border-slate-200 hover:border-[#1e4620]/40 hover:bg-emerald-50/40 rounded-xl text-slate-600 font-semibold text-xs flex items-center justify-center gap-2 transition"
